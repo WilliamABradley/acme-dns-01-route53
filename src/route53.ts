@@ -10,11 +10,12 @@ import {
 
 const getZones = async (client: Route53Client) => {
   const data = await client.send(new ListHostedZonesByNameCommand({}));
-  const zoneData = data.HostedZones!.map((zone) => {
-    // drop '.' at the end of each zone
-    zone.Name = zone.Name?.substring(0, zone.Name.length - 1);
-    return zone;
-  });
+  const zoneData =
+    data.HostedZones?.map((zone) => {
+      // drop '.' at the end of each zone
+      zone.Name = zone.Name?.substring(0, zone.Name.length - 1);
+      return zone;
+    }) ?? [];
 
   if (data.IsTruncated) {
     throw new Error("Too many records to deal with. Some are truncated.");
@@ -86,21 +87,22 @@ export const create = function (config: Config = {}) {
         if (config.debug) {
           console.log(
             `No existing records for ${recordName} in \n\t in:`,
-            recordSetResults.ResourceRecordSets!.map((rrs) => {
+            recordSetResults.ResourceRecordSets?.map((rrs) => {
               return {
                 name: rrs.Name,
-                value: rrs.ResourceRecords!.map((rrs) => rrs.Value).join(","),
+                value: rrs.ResourceRecords?.map((rrs) => rrs.Value).join(","),
               };
             })
           );
         }
 
         // check if record name already exists
-        const existingRecord = recordSetResults
-          .ResourceRecordSets!.map((rrs) => {
+        const existingRecord = recordSetResults.ResourceRecordSets?.map(
+          (rrs) => {
             rrs.Name = rrs.Name?.slice(0, -1);
             return rrs;
-          }) // Remove last dot (.) from resource record set names
+          }
+        ) // Remove last dot (.) from resource record set names
           .filter((rrs) => rrs.Name === recordName); // Only matching record(s)
 
         const newRecord = { Value: `"${txt}"` };
@@ -201,30 +203,30 @@ export const create = function (config: Config = {}) {
         if (config.debug) {
           console.log(
             "\n\t from one of these existing records:",
-            data.ResourceRecordSets!.map((rrs) => {
+            data.ResourceRecordSets?.map((rrs) => {
               return {
                 name: rrs.Name,
-                value: rrs.ResourceRecords!.map((rrs) => rrs.Value).join(","),
+                value: rrs.ResourceRecords?.map((rrs) => rrs.Value).join(","),
               };
             })
           );
         }
 
-        const match = data.ResourceRecordSets!.filter(
+        const match = data.ResourceRecordSets?.filter(
           (rrs) =>
-            rrs.ResourceRecords!.filter(
-              (txtRs) => txtRs.Value!.slice(1, -1) === txt
+            rrs.ResourceRecords?.filter(
+              (txtRs) => txtRs.Value?.slice(1, -1) === txt
             ).length // remove quotes around record and match it against value we want to remove
         )[0]; // should only contain one match at most (index 0 doesn't throw here if it doesn't exist)
 
         // if more than one recordset, remove the one we don't want and keep the rest
-        if (match && match.ResourceRecords!.length > 1) {
+        if (match && match.ResourceRecords?.length > 1) {
           if (config.debug) {
             console.log("Upserting to delete a value from:", recordName);
           }
           // upsert
-          const rr = match.ResourceRecords!.filter(
-            (rr) => rr.Value!.slice(1, -1) !== txt // remove quotes
+          const rr = match.ResourceRecords?.filter(
+            (rr) => rr.Value?.slice(1, -1) !== txt // remove quotes
           );
 
           if (config.debug) {
@@ -259,7 +261,7 @@ export const create = function (config: Config = {}) {
             console.log("Deleting whole record:", recordName);
             console.log(
               "\t value:",
-              match.ResourceRecords!.map((rr) => rr.Value)
+              match.ResourceRecords?.map((rr) => rr.Value)
             );
           }
 
@@ -316,7 +318,7 @@ export const create = function (config: Config = {}) {
           throw "Too many records to deal with. Some are truncated";
         }
 
-        const txtRecords = data.ResourceRecordSets!.filter(
+        const txtRecords = data.ResourceRecordSets?.filter(
           (rrs) => rrs.Type === "TXT"
         );
 
@@ -325,7 +327,7 @@ export const create = function (config: Config = {}) {
         }
         const match = txtRecords
           .map(
-            (rrs) => rrs.ResourceRecords!.map((rec) => rec.Value?.slice(1, -1)) // remove quotes sorrounding the strings
+            (rrs) => rrs.ResourceRecords?.map((rec) => rec.Value?.slice(1, -1)) // remove quotes sorrounding the strings
           )
           .filter((txtRecords) => {
             const val = txtRecords.filter((rec) => rec === txt); // match possible multiple values
