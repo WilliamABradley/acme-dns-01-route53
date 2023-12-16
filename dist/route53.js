@@ -61,7 +61,7 @@ var getZones = function (client) { return __awaiter(void 0, void 0, void 0, func
                     return zone;
                 });
                 if (data.IsTruncated) {
-                    throw "Too many records to deal with. Some are truncated. ";
+                    throw new Error("Too many records to deal with. Some are truncated.");
                 }
                 return [2 /*return*/, zoneData];
         }
@@ -96,9 +96,12 @@ var create = function (config) {
     (_b = config.ensureSync) !== null && _b !== void 0 ? _b : (config.ensureSync = false);
     var client = new client_route_53_1.Route53Client(config);
     return {
-        init: function () {
-            return null;
-        },
+        propagationDelay: 5000,
+        init: function () { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, null];
+            });
+        }); },
         zones: function () { return __awaiter(_this, void 0, void 0, function () {
             var zones, e_2;
             return __generator(this, function (_a) {

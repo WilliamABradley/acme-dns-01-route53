@@ -48,7 +48,8 @@ export const create = function (config: Config = {}) {
   const client = new Route53Client(config);
 
   return {
-    init: (): null => {
+    propagationDelay: 5000,
+    init: async () => {
       return null;
     },
     zones: async () => {
