@@ -2,9 +2,10 @@
     "compilerOptions": {
         "outDir": "./dist",
         "allowJs": true,
-        "target": "es5",
+        "target": "ES2021",
+        "moduleResolution": "Node",
         "lib": [
-            "es2015",
+            "ES2021",
             "dom"
         ],
         "noImplicitReturns": true,
